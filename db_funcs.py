@@ -209,11 +209,13 @@ class BotDB:
 
     def validate_phonenumber(self, phonenumber1):
         if phonenumber1.isdigit():
-            if not phonenumber1.startswith("38"):
+            if phonenumber1.startswith("0") and len(phonenumber1) == 10:
                 phonenumber1 = "38" + phonenumber1
                 return phonenumber1
-            else:
+            elif phonenumber1.startswith("38") and len(phonenumber1) == 12:
                 return phonenumber1
+            else:
+                return "Error"
         else:
             return "Error"
 
