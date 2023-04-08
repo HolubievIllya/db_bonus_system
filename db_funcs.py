@@ -29,194 +29,137 @@ class BotDB:
             )
         return "Таблиця готова до роботи"
 
-    def if_client_exists(self, phonenumber1):
+    def if_client_exists(self, phonenumber: str) -> bool:
         """check if the client already in db"""
         with self.connection.cursor() as cursor:
             cursor.execute(
                 """SELECT phonenumber FROM train_table WHERE phonenumber = %s;""",
-                (phonenumber1,),
+                (phonenumber,),
             )
             result = cursor.fetchall()
         return bool(len(result))
 
     def add_new_client(
-        self, phonenumber1, name1, surname1, bonus1
-    ):  # добавить пользователя в бд
+        self, phonenumber: str, name: str, surname: str, bonus: str
+    ) -> str:
         """add new client into db"""
-        phonenumber1 = self.validate_phonenumber(phonenumber1)
-        if phonenumber1 == "Error":
-            return "Введіть номер телефону коректно"
-        elif not bonus1.isdigit():
-            return "Введіть кількість бонусів коректно"
-        elif self.if_client_exists(phonenumber1):
+        if self.if_client_exists(phonenumber):
             return "Такий клієнт вже існує"
         else:
             with self.connection.cursor() as cursor:
                 cursor.execute(
                     """INSERT INTO train_table (phonenumber, name, surname, bonus) VALUES (%s, %s, %s, %s)""",
                     (
-                        phonenumber1,
-                        name1.capitalize(),
-                        surname1.capitalize(),
-                        int(bonus1),
+                        phonenumber,
+                        name.capitalize(),
+                        surname.capitalize(),
+                        int(bonus),
                     ),
                 )
                 self.connection.commit()
             return "Інформацію додано"
 
-    def minus_all_bonus_from_exist_client(self, phonenumber1):
+    def minus_all_bonus_from_exist_client(self, phonenumber: str) -> str:
         """minus bonuses by phonenumber"""
-        phonenumber1 = self.validate_phonenumber(phonenumber1)
-        if phonenumber1 == "Error":
-            return "Введіть номер телефону коректно"
-        if not self.if_client_exists(phonenumber1):
-            return "Такого клієнту не існує"
-        else:
-            with self.connection.cursor() as cursor:
-                cursor.execute(
-                    """UPDATE train_table SET bonus = 0 WHERE phonenumber = %s;""",
-                    (phonenumber1,),
-                )
-                self.connection.commit()
-            return "Бонуси анульовані"
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """UPDATE train_table SET bonus = 0 WHERE phonenumber = %s;""",
+                (phonenumber,),
+            )
+            self.connection.commit()
+            if bool(cursor.rowcount):
+                return "Бонуси анульовані"
+        return "Такого клієнту не існує"
 
-    def delete_exist_client(self, phonenumber1):
+    def delete_exist_client(self, phonenumber: str) -> str:
         """delete client from db"""
-        phonenumber1 = self.validate_phonenumber(phonenumber1)
-        if phonenumber1 == "Error":
-            return "Введіть номер телефону коректно"
-        if not self.if_client_exists(phonenumber1):
-            return "Такого клієнту не існує"
-        else:
-            with self.connection.cursor() as cursor:
-                cursor.execute(
-                    """DELETE FROM train_table WHERE phonenumber = %s;""",
-                    (phonenumber1,),
-                )
-                self.connection.commit()
-            return "Клієнт видален з бази"
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """DELETE FROM train_table WHERE phonenumber = %s;""",
+                (phonenumber,),
+            )
+            self.connection.commit()
+            if bool(cursor.rowcount):
+                return "Клієнт видален з бази"
+        return "Такого клієнту не існує"
 
-    def plus_bonus_to_exist_client(self, phonenumber1, bonus1):
+    def plus_bonus_to_exist_client(self, phonenumber: str, bonus: str) -> str:
         """add bonus to client"""
-        phonenumber1 = self.validate_phonenumber(phonenumber1)
-        if phonenumber1 == "Error":
-            return "Введіть номер телефону коректно"
-        elif not bonus1.isdigit():
-            return "Введіть кількість бонусів коректно"
-        if not self.if_client_exists(phonenumber1):
-            return "Такого клієнту не існує"
-        else:
-            with self.connection.cursor() as cursor:
-                cursor.execute(
-                    """UPDATE train_table SET bonus = bonus + %s WHERE phonenumber = %s;""",
-                    (
-                        int(bonus1),
-                        phonenumber1,
-                    ),
-                )
-                self.connection.commit()
-            return "Бонуси успішно додані"
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """UPDATE train_table SET bonus = bonus + %s WHERE phonenumber = %s;""",
+                (
+                    int(bonus),
+                    phonenumber,
+                ),
+            )
+            self.connection.commit()
+            if bool(cursor.rowcount):
+                return "Бонуси додані"
+        return "Такого клієнту не існує"
 
-    def minus_bonus_from_exist_client(self, phonenumber1, bonus1):
+    def minus_bonus_from_exist_client(self, phonenumber: str, bonus: str) -> str:
         """minus bonuses"""
-        phonenumber1 = self.validate_phonenumber(phonenumber1)
-        if phonenumber1 == "Error":
-            return "Введіть номер телефону коректно"
-        elif not bonus1.isdigit():
-            return "Введіть кількість бонусів коректно"
-        if not self.if_client_exists(phonenumber1):
-            return "Такого клієнту не існує"
-        else:
-            with self.connection.cursor() as cursor:
-                cursor.execute(
-                    """UPDATE train_table SET bonus = bonus - %s WHERE phonenumber = %s;""",
-                    (
-                        int(bonus1),
-                        phonenumber1,
-                    ),
-                )
-                self.connection.commit()
-            return "Бонуси успішно списані"
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """UPDATE train_table SET bonus = bonus - %s WHERE phonenumber = %s;""",
+                (
+                    int(bonus),
+                    phonenumber,
+                ),
+            )
+            self.connection.commit()
+            if bool(cursor.rowcount):
+                return "Бонуси списані"
+        return "Такого клієнту не існує"
 
-    def edit_client_name(self, phonenumber1, new_name):
+    def edit_client_name(self, phonenumber: str, new_name: str) -> str:
         """edit clients' name"""
-        phonenumber1 = self.validate_phonenumber(phonenumber1)
-        if phonenumber1 == "Error":
-            return "Ведіть номер телефону коректно"
-        elif not new_name.isalpha():
-            return "Введіть нове ім'я коректно"
-        elif not self.if_client_exists(phonenumber1):
-            return "Такого клієнту не існує"
-        else:
-            with self.connection.cursor() as cursor:
-                cursor.execute(
-                    """UPDATE train_table SET name = %s WHERE phonenumber = %s;""",
-                    (
-                        new_name.capitalize(),
-                        phonenumber1,
-                    ),
-                )
-                self.connection.commit()
-            return "Ім'я клієнту успішно змінено"
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """UPDATE train_table SET name = %s WHERE phonenumber = %s;""",
+                (
+                    new_name.capitalize(),
+                    phonenumber,
+                ),
+            )
+            self.connection.commit()
+            if bool(cursor.rowcount):
+                return "Ім'я клієнту успішно змінено"
+        return "Такого клієнту не існує"
 
-    def edit_client_surname(self, phonenumber1, new_surname):
+    def edit_client_surname(self, phonenumber: str, new_surname: str) -> str:
         """edit clients' surname"""
-        phonenumber1 = self.validate_phonenumber(phonenumber1)
-        if phonenumber1 == "Error":
-            return "Введіть номер телефону коректно"
-        elif not new_surname.isalpha():
-            return "Введіть нове прізвище коректно"
-        elif not self.if_client_exists(phonenumber1):
-            return "Такого клієнту не існує"
-        else:
-            with self.connection.cursor() as cursor:
-                cursor.execute(
-                    """UPDATE train_table SET surname = %s WHERE phonenumber = %s;""",
-                    (
-                        new_surname.capitalize(),
-                        phonenumber1,
-                    ),
-                )
-                self.connection.commit()
-            return "Прізвище клієнту успішно змінено"
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """UPDATE train_table SET surname = %s WHERE phonenumber = %s;""",
+                (
+                    new_surname.capitalize(),
+                    phonenumber,
+                ),
+            )
+            self.connection.commit()
+            if bool(cursor.rowcount):
+                return "Прізвище клієнту успішно змінено"
+        return "Такого клієнту не існує"
 
-    def total_amount_of_clients(self):
+    def total_amount_of_clients(self) -> str:
         """return anount of clients in db"""
         with self.connection.cursor() as cursor:
             cursor.execute("""SELECT COUNT(id) as max_value FROM train_table;""")
             result = cursor.fetchall()
         return f"Загальна кількість клієнтів в базі: {result[0][0]}"
 
-    def get_client_info(self, phonenumber1):
+    def get_client_info(self, phonenumber: str) -> str:
         """return clients' info"""
-        phonenumber1 = self.validate_phonenumber(phonenumber1)
-        if phonenumber1 == "Error":
-            return "Введіть номер телефону коректно"
-        elif not self.if_client_exists(phonenumber1):
-            return "Такого клієнту не існує"
-        else:
-            with self.connection.cursor() as cursor:
-                cursor.execute(
-                    """SELECT * FROM train_table WHERE phonenumber = %s;""",
-                    (phonenumber1,),
-                )
-                result = cursor.fetchall()
-            return (
-                f"Прізвище та ім'я: {result[0][3]} {result[0][2]}\n"
-                f"Номер телефону: {result[0][1]}\n"
-                f"Кількість бонусів: {result[0][4]}"
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """SELECT * FROM train_table WHERE phonenumber = %s;""",
+                (phonenumber,),
             )
-
-    def validate_phonenumber(self, phonenumber1):
-        if phonenumber1.isdigit():
-            if phonenumber1.startswith("0") and len(phonenumber1) == 10:
-                phonenumber1 = "38" + phonenumber1
-                return phonenumber1
-            elif phonenumber1.startswith("38") and len(phonenumber1) == 12:
-                return phonenumber1
-            else:
-                return "Error"
-        else:
-            return "Error"
-
-
+            result = cursor.fetchall()
+        return (
+            f"Прізвище та ім'я: {result[0][3]} {result[0][2]}\n"
+            f"Номер телефону: {result[0][1]}\n"
+            f"Кількість бонусів: {result[0][4]}"
+        )
