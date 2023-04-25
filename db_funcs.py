@@ -29,6 +29,26 @@ class BotDB:
             )
         return "Таблиця готова до роботи"
 
+    def create_table_admins(self):
+        """create table with passwords"""
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """CREATE TABLE IF NOT EXISTS admins (
+                id serial PRIMARY KEY,
+                admins TEXT);"""
+            )
+        return "Таблиця з адмінами готова"
+
+    def if_admin_exists(self, user_id: str) -> bool:
+        """check if the admin already in db"""
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """SELECT * FROM admins WHERE admins = %s;""",
+                (user_id,),
+            )
+            result = cursor.fetchall()
+        return bool(len(result))
+
     def if_client_exists(self, phonenumber: str) -> bool:
         """check if the client already in db"""
         with self.connection.cursor() as cursor:
@@ -38,6 +58,26 @@ class BotDB:
             )
             result = cursor.fetchall()
         return bool(len(result))
+
+    def all_admins(self) -> list:
+        """returns the list of admins in db"""
+        with self.connection.cursor() as cursor:
+            cursor.execute("""SELECT * FROM admins;""")
+            result = cursor.fetchall()
+        return [i[1] for i in result]
+
+    def add_new_admin(self, user_id: str) -> str:
+        """add new admin into db"""
+        if self.if_admin_exists(user_id):
+            return "Такий адмін вже існує"
+        else:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO admins (admins) VALUES (%s)""",
+                    (user_id,),
+                )
+                self.connection.commit()
+            return "Адмін додан"
 
     def add_new_client(
         self, phonenumber: str, name: str, surname: str, bonus: str
@@ -82,6 +122,18 @@ class BotDB:
             if bool(cursor.rowcount):
                 return "Клієнт видален з бази"
         return "Такого клієнту не існує"
+
+    def delete_exist_admin(self, user_id: str) -> str:
+        """delete admin from db"""
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """DELETE FROM admins WHERE admins = %s;""",
+                (user_id,),
+            )
+            self.connection.commit()
+            if bool(cursor.rowcount):
+                return "Адмін видален з бази"
+        return "Такого адміну не існує"
 
     def plus_bonus_to_exist_client(self, phonenumber: str, bonus: str) -> str:
         """add bonus to client"""

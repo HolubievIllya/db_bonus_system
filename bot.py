@@ -13,7 +13,12 @@ db = BotDB()
 
 @bot.message_handler(commands=["start"])
 def start(message):
-    bot.send_message(message.from_user.id, "Вас вітає бот!", reply_markup=main_menu())
+    if message.from_user.username not in db.all_admins():
+        bot.send_message(message.from_user.id, "Вас не має в адміністраторах")
+    else:
+        bot.send_message(
+            message.from_user.id, "Вас вітає бот!", reply_markup=main_menu()
+        )
 
 
 def main_menu():
@@ -22,7 +27,8 @@ def main_menu():
     btn2 = types.KeyboardButton("Додати нового клієнта")
     btn3 = types.KeyboardButton("Вся інформація про клієнта")
     btn4 = types.KeyboardButton("Опрацювати старого клієнта")
-    markup.add(btn1, btn2, btn3, btn4)
+    btn5 = types.KeyboardButton("Адмін")
+    markup.add(btn1, btn2, btn3, btn4, btn5)
     return markup
 
 
@@ -70,6 +76,32 @@ def get_text_messages(message):
                 "380XXXXXXXXX Ім'я Прізвище К-сть бонусів",
             )
             bot.register_next_step_handler(mesg, parse_add_new_client)
+        case "Адмін":
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            btn1 = types.KeyboardButton("Додати адміна")
+            btn2 = types.KeyboardButton("Видалити адміна")
+            btn3 = types.KeyboardButton("Список тегів всіх адмінів")
+            markup.add(btn1, btn2, btn3)
+            bot.send_message(message.from_user.id, "Оберіть дію", reply_markup=markup)
+        case "Додати адміна":
+            mesg = bot.send_message(
+                message.chat.id,
+                "Введіть тег адміну без @",
+            )
+            bot.register_next_step_handler(mesg, parse_add_new_admin)
+        case "Видалити адміна":
+            mesg = bot.send_message(
+                message.chat.id,
+                "Введіть тег адміну без @",
+            )
+            bot.register_next_step_handler(mesg, parse_del_admin)
+        case "Список тегів всіх адмінів":
+            mesg = ", ".join(db.all_admins())
+            bot.send_message(
+                message.from_user.id,
+                mesg,
+                reply_markup=main_menu(),
+            )
         case "Опрацювати старого клієнта":
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             btn1 = types.KeyboardButton("Додати бонуси")
@@ -129,6 +161,11 @@ def parse_phonenumber(message: types.Message):
 
 
 @validation_handler
+def parse_add_new_admin(message: types.Message):
+    bot.send_message(message.chat.id, db.add_new_admin(message.text))
+
+
+@validation_handler
 def parse_add_new_client(message: types.Message):
     mes = validate_input(message.text, 4)
     bot.send_message(message.chat.id, db.add_new_client(mes[0], mes[1], mes[2], mes[3]))
@@ -161,6 +198,13 @@ def parse_phone_minus_all(message: types.Message):
         message.chat.id,
         db.minus_all_bonus_from_exist_client(mes[0]),
         reply_markup=main_menu(),
+    )
+
+
+@validation_handler
+def parse_del_admin(message: types.Message):
+    bot.send_message(
+        message.chat.id, db.delete_exist_admin(message.text), reply_markup=main_menu()
     )
 
 
