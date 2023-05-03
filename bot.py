@@ -311,4 +311,8 @@ def validate_input(message, items_num: int) -> list:
     return mes
 
 
-bot.polling(none_stop=True, interval=0)
+
+
+
+if "__main__" == __name__ :
+    bot.polling(none_stop=True, interval=0)
