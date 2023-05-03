@@ -30,7 +30,7 @@ class BotDB:
         return "Таблиця готова до роботи"
 
     def create_table_admins(self):
-        """create table with passwords"""
+        """create table with users"""
         with self.connection.cursor() as cursor:
             cursor.execute(
                 """CREATE TABLE IF NOT EXISTS admins (
@@ -39,11 +39,31 @@ class BotDB:
             )
         return "Таблиця з адмінами готова"
 
+    def create_table_main_admins(self):
+        """create table with main admins"""
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """CREATE TABLE IF NOT EXISTS main_admins (
+                id serial PRIMARY KEY,
+                admins TEXT);"""
+            )
+        return "Таблиця з адмінами готова"
+
     def if_admin_exists(self, user_id: str) -> bool:
-        """check if the admin already in db"""
+        """check if the user already in db"""
         with self.connection.cursor() as cursor:
             cursor.execute(
                 """SELECT * FROM admins WHERE admins = %s;""",
+                (user_id,),
+            )
+            result = cursor.fetchall()
+        return bool(len(result))
+
+    def if_main_admin_exists(self, user_id: str) -> bool:
+        """check if the main admin already in db"""
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """SELECT * FROM main_admins WHERE admins = %s;""",
                 (user_id,),
             )
             result = cursor.fetchall()
@@ -60,16 +80,36 @@ class BotDB:
         return bool(len(result))
 
     def all_admins(self) -> list:
-        """returns the list of admins in db"""
+        """returns the list of users in db"""
         with self.connection.cursor() as cursor:
             cursor.execute("""SELECT * FROM admins;""")
             result = cursor.fetchall()
         return [i[1] for i in result]
 
-    def add_new_admin(self, user_id: str) -> str:
-        """add new admin into db"""
-        if self.if_admin_exists(user_id):
+    def all_main_admins(self) -> list:
+        """returns the list of main admins in db"""
+        with self.connection.cursor() as cursor:
+            cursor.execute("""SELECT * FROM main_admins;""")
+            result = cursor.fetchall()
+        return [i[1] for i in result]
+
+    def add_new_main_admin(self, user_id: str) -> str:
+        """add new main admin into db"""
+        if self.if_main_admin_exists(user_id):
             return "Такий адмін вже існує"
+        else:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO main_admins (admins) VALUES (%s)""",
+                    (user_id,),
+                )
+                self.connection.commit()
+            return "Адмін додан"
+
+    def add_new_admin(self, user_id: str) -> str:
+        """add new user into db"""
+        if self.if_admin_exists(user_id):
+            return "Такий користувач вже існує"
         else:
             with self.connection.cursor() as cursor:
                 cursor.execute(
@@ -77,7 +117,7 @@ class BotDB:
                     (user_id,),
                 )
                 self.connection.commit()
-            return "Адмін додан"
+            return "Користувач додан"
 
     def add_new_client(
         self, phonenumber: str, name: str, surname: str, bonus: str
@@ -128,6 +168,18 @@ class BotDB:
         with self.connection.cursor() as cursor:
             cursor.execute(
                 """DELETE FROM admins WHERE admins = %s;""",
+                (user_id,),
+            )
+            self.connection.commit()
+            if bool(cursor.rowcount):
+                return "Користувач видален з бази"
+        return "Такого користувача не існує"
+
+    def delete_exist_main_admin(self, user_id: str) -> str:
+        """delete user from db"""
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """DELETE FROM main_admins WHERE admins = %s;""",
                 (user_id,),
             )
             self.connection.commit()
