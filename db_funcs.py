@@ -37,7 +37,7 @@ class BotDB:
                 id serial PRIMARY KEY,
                 admins TEXT);"""
             )
-        return "Таблиця з адмінами готова"
+        return "Таблиця з користувачами готова"
 
     def create_table_main_admins(self):
         """create table with main admins"""

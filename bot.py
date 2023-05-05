@@ -15,7 +15,7 @@ db = BotDB()
 @bot.message_handler(commands=["start"])
 def start(message):
     if message.from_user.username not in db.all_admins():
-        bot.send_message(message.from_user.id, "Вас не має в користувачах")
+        bot.send_message(message.from_user.id, "Вас немає в користувачах")
     else:
         bot.send_message(
             message.from_user.id, "Вас вітає бот!", reply_markup=main_menu()
@@ -71,7 +71,7 @@ def get_text_messages(message):
             bot.register_next_step_handler(mesg, parse_add_new_client)
         case "Адмін":
             if message.from_user.username not in db.all_main_admins():
-                bot.send_message(message.from_user.id, "Вас не має в адміністраторах")
+                bot.send_message(message.from_user.id, "Вас немає в адміністраторах")
             else:
                 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
                 btn1 = types.KeyboardButton("Додати користувача")
@@ -86,7 +86,7 @@ def get_text_messages(message):
                 )
         case "Додати користувача":
             if message.from_user.username not in db.all_main_admins():
-                bot.send_message(message.from_user.id, "Вас не має в адміністраторах")
+                bot.send_message(message.from_user.id, "Вас немає в адміністраторах")
             else:
                 mesg = bot.send_message(
                     message.chat.id,
@@ -95,7 +95,7 @@ def get_text_messages(message):
                 bot.register_next_step_handler(mesg, parse_add_new_admin)
         case "Видалити користувача":
             if message.from_user.username not in db.all_main_admins():
-                bot.send_message(message.from_user.id, "Вас не має в адміністраторах")
+                bot.send_message(message.from_user.id, "Вас немає в адміністраторах")
             else:
                 mesg = bot.send_message(
                     message.chat.id,
@@ -104,7 +104,7 @@ def get_text_messages(message):
                 bot.register_next_step_handler(mesg, parse_del_admin)
         case "Список тегів всіх користувачів":
             if message.from_user.username not in db.all_main_admins():
-                bot.send_message(message.from_user.id, "Вас не має в адміністраторах")
+                bot.send_message(message.from_user.id, "Вас немає в адміністраторах")
             else:
                 mesg = ", ".join(db.all_admins())
                 bot.send_message(
@@ -114,7 +114,7 @@ def get_text_messages(message):
                 )
         case "Додати адміна":
             if message.from_user.username not in db.all_main_admins():
-                bot.send_message(message.from_user.id, "Вас не має в адміністраторах")
+                bot.send_message(message.from_user.id, "Вас немає в адміністраторах")
             else:
                 mesg = bot.send_message(
                     message.chat.id,
@@ -123,7 +123,7 @@ def get_text_messages(message):
                 bot.register_next_step_handler(mesg, parse_add_new_main_admin)
         case "Видалити адміна":
             if message.from_user.username not in db.all_main_admins():
-                bot.send_message(message.from_user.id, "Вас не має в адміністраторах")
+                bot.send_message(message.from_user.id, "Вас немає в адміністраторах")
             else:
                 mesg = bot.send_message(
                     message.chat.id,
@@ -132,7 +132,7 @@ def get_text_messages(message):
                 bot.register_next_step_handler(mesg, parse_del_main_admin)
         case "Список тегів всіх адмінів":
             if message.from_user.username not in db.all_main_admins():
-                bot.send_message(message.from_user.id, "Вас не має в адміністраторах")
+                bot.send_message(message.from_user.id, "Вас немає в адміністраторах")
             else:
                 mesg = ", ".join(db.all_main_admins())
                 bot.send_message(
@@ -307,7 +307,7 @@ def validate_input(message, items_num: int) -> list:
         if not mes[3].isdigit():
             raise ValueError("Введіть бонуси у числовому форматі")
         elif not mes[1].isalpha() or not mes[2].isalpha():
-            raise ValueError("Введіть ім'я або прізвище у літерами")
+            raise ValueError("Введіть ім'я або прізвище літерами")
     return mes
 
 
